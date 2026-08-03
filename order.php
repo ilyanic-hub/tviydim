@@ -45,13 +45,8 @@ $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 curl_close($curl);
 
 // ВІДЛАГОДЖЕННЯ: Виводимо все на екран
-echo "<h2>Результат відправки в Drop1:</h2>";
-echo "<p><b>HTTP Code:</b> " . $httpCode . "</p>";
-echo "<p><b>Відповідь сервера:</b> " . htmlspecialchars($result) . "</p>";
-echo "<hr>";
-echo "<h3>Дані, які відправлялися:</h3>";
-echo "<pre>";
-print_r($postfields);
-echo "</pre>";
+// 4. Перенаправлення на сторінку успіху
+$fbpxidParam = isset($fbpxid) ? $fbpxid : '';
+header('Location: /success.php?phone=' . urlencode($rawPhone) . '&uid=' . urlencode($clean_uid) . '&fbpxid=' . urlencode($fbpxidParam));
 exit();
 ?>
