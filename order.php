@@ -47,6 +47,6 @@ curl_close($curl);
 
 // Перенаправлення на сторінку дякуємо
 $fbpxidParam = isset($fbpxid) ? $fbpxid : '';
-header('Location: /success.php?phone=' . urlencode($rawPhone) . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
+header('Location: /success.php?phone=' . urlencode($cleanPhone) . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
 exit();
 ?>
