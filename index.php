@@ -1,6 +1,6 @@
 <?php
 include_once './my_conf.php';
-include_once './my_stat_0976767.php';
+// include_once './my_stat_0976767.php';
 ?>
 <!DOCTYPE html>
 <html lang="ru-RU">
