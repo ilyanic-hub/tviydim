@@ -1,6 +1,6 @@
 <?php
 include_once './my_conf.php';
-include_once "./my_stat_0976767.php";
+// include_once "./my_stat_0976767.php";
 date_default_timezone_set('Europe/Rome');
 
 require_once "./lib/Mobile_Detect.php";
