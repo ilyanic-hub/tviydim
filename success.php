@@ -1,7 +1,7 @@
 <?php
 $isWhite= 'gray';
 require_once 'my_conf.php';
-require_once 'my_stat_0976767.php'
+// require_once 'my_stat_0976767.php'
 ?>
 <html>
 
