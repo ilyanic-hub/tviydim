@@ -8,20 +8,16 @@ if (empty($_POST['name']) || empty($_POST['phone'])) {
 }
 
 $name = trim($_POST['name']);
-$rawPhone = trim($_POST['phone']);
+$rawPhone = $_POST['phone'] ?? '';
 file_put_contents('log.txt', date('Y-m-d H:i:s') . " - RAW PHONE: " . $_POST['phone'] . "\n", FILE_APPEND);
 
 // 1. Полная очистка: убираем подчеркивания и всё, что не является цифрой
 $cleanPhone = str_replace('_', '', $rawPhone);
-$digits = preg_replace('/[^0-9]/', '', $cleanPhone);
+$digits = preg_replace('/[^0-9]/', '', $rawPhone);
 
 // 2. Нормализация номера под украинский формат (380XXXXXXXXX - 12 цифр)
 if (strlen($digits) === 10 && strpos($digits, '0') === 0) {
-    // 0963254392 -> 380963254392
     $digits = '38' . $digits;
-} elseif (strlen($digits) === 9) {
-    // 963254392 -> 380963254392
-    $digits = '380' . $digits;
 }
 
 // 3. Защита от отправки битого номера
@@ -40,8 +36,8 @@ $headers = [
 
 $postfields = [
     'name'  => $name,
-    'phone' => $digits,
-    'uid'   => trim($drop1_uid),
+    'phone' => $digits, // <--- ЗДЕСЬ должны быть только цифры "380963254392"
+    'uid'   => trim($drop1_uid)
     // Автоматическая передача заказа в колл-центр Drop1 (CPA / Аутсорсинг)
     'processing_type' => 'cpa' 
 ];
