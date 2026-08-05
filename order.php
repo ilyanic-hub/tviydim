@@ -12,7 +12,7 @@ $rawPhone = trim($_POST['phone']);
 // Форматування телефону під вимоги Drop1
 $cleanPhone = preg_replace('/[^0-9]/', '', $rawPhone);
 if (strlen($cleanPhone) === 10) {
-    $cleanPhone = '38' . $cleanPhone;
+    $cleanPhone = '+38' . $cleanPhone;
 }
 
 if (strlen($cleanPhone) === 12) {
