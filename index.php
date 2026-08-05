@@ -270,12 +270,11 @@ include_once './my_conf.php';
                         <p><?=$price?><small> грн</small></p>
                     </div>
                 </div>
-                <form id="order_form" class="main-order-form m1-form" action="order.php"
-                    method="post">
-                    <input class="field" name="name" type="text" placeholder="Введіть ваше ім'я" required="">
-                    <input class="field" name="phone" type="tel" placeholder="Введіть ваш телефон" required="">
-                    <button type="submit" class="button-m">Замовити зараз</button>
-                </form>
+                <form id="order_form" class="main-order-form m1-form" action="order.php" method="post">
+					<input class="field" name="name" type="text" placeholder="Введіть ваше ім'я" required="">
+					<input class="field" name="phone" type="tel" placeholder="Введіть ваш телефон" required="">
+					<button type="submit" class="button-m">Замовити зараз</button>
+				</form>
                 <div class="stock">Кількість товару обмежена</div>
             </div>
         </div>
