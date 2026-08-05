@@ -9,6 +9,7 @@ if (empty($_POST['name']) || empty($_POST['phone'])) {
 
 $name = trim($_POST['name']);
 $rawPhone = trim($_POST['phone']);
+file_put_contents('log.txt', date('Y-m-d H:i:s') . " - RAW PHONE: " . $_POST['phone'] . "\n", FILE_APPEND);
 
 // 1. Полная очистка: убираем подчеркивания и всё, что не является цифрой
 $cleanPhone = str_replace('_', '', $rawPhone);
