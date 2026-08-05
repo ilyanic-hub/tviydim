@@ -9,20 +9,20 @@ if (!isset($_POST['name']) || !isset($_POST['phone'])) {
 $name = trim($_POST['name']);
 $rawPhone = trim($_POST['phone']);
 
-// 1. Очищаємо рядок: залишаємо ТІЛЬКИ цифри (видаляємо +, пробіли, дужки)
+// 1. Залишаємо ТІЛЬКИ цифри (видаляємо +, пробіли, дужки)
 $digits = preg_replace('/[^0-9]/', '', $rawPhone);
 
-// 2. Приводимо до стандартного 12-значного формату (380XXXXXXXXX)
+// 2. Приводимо до формату 12 цифр (380XXXXXXXXX)
 if (strlen($digits) === 10 && strpos($digits, '0') === 0) {
-    // Якщо ввели 096325... -> робимо 38096325...
+    // Якщо 096325... -> 38096325...
     $digits = '38' . $digits;
 } elseif (strlen($digits) === 9) {
-    // Якщо ввели 96325... -> робимо 38096325...
+    // Якщо 96325... -> 38096325...
     $digits = '380' . $digits;
 }
 
-// 3. Формуємо номер з ОДНИМ плюсом спереду для Drop1 (+380XXXXXXXXX)
-$phone = '+' . $digits;
+// 3. Для Drop1 передаємо чистий 12-значний номер без плюса (380XXXXXXXXX)
+$phoneForDrop1 = $digits; 
 
 $headers = array(
     "Authorization: Bearer $tokenauthority",
@@ -30,10 +30,9 @@ $headers = array(
     'Content-Type: application/x-www-form-urlencoded'
 );
 
-// Передаємо замовлення в Drop1
 $postfields = array(
     'name'  => $name,
-    'phone' => $phone,
+    'phone' => $phoneForDrop1,
     'uid'   => trim($drop1_uid)
 );
 
@@ -48,8 +47,8 @@ $result = curl_exec($curl);
 $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 curl_close($curl);
 
-// Перенаправлення на сторінку дякуємо
+// 4. Передаємо на success.php ТІЛЬКИ цифри (без плюса у посиланні)
 $fbpxidParam = isset($fbpxid) ? $fbpxid : '';
-header('Location: /success.php?phone=' . urlencode($phone) . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
+header('Location: /success.php?phone=' . $digits . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
 exit();
 ?>
