@@ -37,7 +37,7 @@ $headers = [
 $postfields = [
     'name'  => $name,
     'phone' => $digits, // <--- ЗДЕСЬ должны быть только цифры "380963254392"
-    'uid'   => trim($drop1_uid)
+    'uid'   => trim($drop1_uid),
     // Автоматическая передача заказа в колл-центр Drop1 (CPA / Аутсорсинг)
     'processing_type' => 'cpa' 
 ];
