@@ -11,23 +11,20 @@ $name = trim($_POST['name']);
 $rawPhone = $_POST['phone'] ?? '';
 file_put_contents('log.txt', date('Y-m-d H:i:s') . " - RAW PHONE: " . $_POST['phone'] . "\n", FILE_APPEND);
 
-// 1. Полная очистка: убираем подчеркивания и всё, что не является цифрой
+// 1. Очищаем от всего, кроме цифр
 $cleanPhone = str_replace('_', '', $rawPhone);
-$digits = preg_replace('/[^0-9]/', '', $rawPhone);
+$digits = preg_replace('/[^0-9]/', '', $cleanPhone);
 
-// 2. Нормализация номера под украинский формат (380XXXXXXXXX - 12 цифр)
+// 2. Приводим к 12 цифрам (380963254392)
 if (strlen($digits) === 10 && strpos($digits, '0') === 0) {
     $digits = '38' . $digits;
+} elseif (strlen($digits) === 9) {
+    $digits = '380' . $digits;
 }
 
-// 3. Защита от отправки битого номера
-// Если после очистки получилось меньше 12 цифр — возвращаем на главную
-if (strlen($digits) !== 12) {
-    header("Location: /?error=invalid_phone");
-    exit();
-}
+// ЛОГИРУЕМ ОЧИЩЕННЫЙ НОМЕР
+file_put_contents('log.txt', date('Y-m-d H:i:s') . " - CLEAN DIGITS: " . $digits . "\n", FILE_APPEND);
 
-// 4. Формирование запроса к Drop1
 $headers = [
     "Authorization: Bearer $tokenauthority",
     'Accept: application/json',
@@ -36,10 +33,8 @@ $headers = [
 
 $postfields = [
     'name'  => $name,
-    'phone' => $digits, // <--- ЗДЕСЬ должны быть только цифры "380963254392"
-    'uid'   => trim($drop1_uid),
-    // Автоматическая передача заказа в колл-центр Drop1 (CPA / Аутсорсинг)
-    'processing_type' => 'cpa' 
+    'phone' => $digits,
+    'uid'   => trim($drop1_uid)
 ];
 
 $curl = curl_init('https://drop1.top/api/orders');
@@ -55,6 +50,9 @@ curl_setopt_array($curl, [
 $result = curl_exec($curl);
 $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 curl_close($curl);
+
+// ЛОГИРУЕМ ОТВЕТ ОТ DROP1
+file_put_contents('log.txt', date('Y-m-d H:i:s') . " - DROP1 RESPONSE ($httpCode): " . $result . "\n", FILE_APPEND);
 
 // 5. Перенаправление на страницу благодарности
 $fbpxidParam = $fbpxid ?? '';
