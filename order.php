@@ -10,19 +10,25 @@ $name = trim($_POST['name']);
 $rawPhone = trim($_POST['phone']);
 
 // 1. Очищаємо від усіх символів, крім цифр
-$cleanPhone = preg_replace('/[^0-9]/', '', $rawPhone);
+$digits = preg_replace('/[^0-9]/', '', $rawPhone);
 
-// 2. Приводим до формату 380XXXXXXXXX
-if (strlen($cleanPhone) === 10 && strpos($cleanPhone, '0') === 0) {
-    // Якщо ввели 0971234567 -> робимо 380971234567
-    $cleanPhone = '38' . $cleanPhone;
-} elseif (strlen($cleanPhone) === 9) {
-    // Якщо ввели 971234567 -> робимо 380971234567
-    $cleanPhone = '380' . $cleanPhone;
+// 2. Нормалізуємо до 12 цифр (формат 380XXXXXXXXX)
+if (strlen($digits) === 10 && strpos($digits, '0') === 0) {
+    // Ввели 096325... -> робимо 38096325...
+    $cleanPhone = '38' . $digits;
+} elseif (strlen($digits) === 9) {
+    // Ввели 96325... -> робимо 38096325...
+    $cleanPhone = '380' . $digits;
+} elseif (strlen($digits) === 12 && strpos($digits, '380') === 0) {
+    // Вже прийшло 38096325... -> залишаємо як є
+    $cleanPhone = $digits;
+} else {
+    // Якщо прийшло щось нестандартне, беремо останні 12 цифр або чисті цифри
+    $cleanPhone = $digits;
 }
 
-// 3. Формуємо номер для Drop1 (+380XXXXXXXXX)
-$phone = '+' . $cleanPhone;
+// 3. Формуємо один єдиний підсумковий номер із ПЛЮСОМ
+$phone = '+' . ltrim($cleanPhone, '+');
 
 $headers = array(
     "Authorization: Bearer $tokenauthority",
@@ -30,6 +36,7 @@ $headers = array(
     'Content-Type: application/x-www-form-urlencoded'
 );
 
+// Передаємо замовлення в Drop1
 $postfields = array(
     'name'  => $name,
     'phone' => $phone,
@@ -47,7 +54,7 @@ $result = curl_exec($curl);
 $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 curl_close($curl);
 
-// Перенаправлення на сторінку дякуємо
+// Перенаправлення на сторінку дякуємо з чистим номером (без + у URL, щоб не було помилок кодування)
 $fbpxidParam = isset($fbpxid) ? $fbpxid : '';
 header('Location: /success.php?phone=' . urlencode($phone) . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
 exit();
