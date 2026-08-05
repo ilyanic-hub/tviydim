@@ -292,8 +292,19 @@ include_once './my_conf.php';
     <script src="files/main.js"></script>
     
     <script type="text/javascript" src="js/previewYouTube.js"></script>
-<script type="text/javascript" src="js/maskedinput.js"></script>
-<script type="text/javascript" src="js/inputmask-fix.js"></script>
+<!-- Замените старые скрипты на этот: -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>
+
+<script>
+$(document).ready(function(){
+    // Настраиваем маску так, чтобы она не срезала вводимые цифры
+    $('input[name="phone"]').inputmask({
+        mask: "+38(099)999-99-99",
+        clearIncomplete: false,
+        autoUnmask: false
+    });
+});
+</script>
 
 </body>
 
