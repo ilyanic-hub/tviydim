@@ -10,33 +10,33 @@ if (empty($_POST['name']) || empty($_POST['phone'])) {
 $name = trim($_POST['name']);
 $rawPhone = $_POST['phone'] ?? '';
 
-// Логируем сырой номер из формы
+// Логируем сырой номер
 file_put_contents('log.txt', date('Y-m-d H:i:s') . " - RAW PHONE: " . $rawPhone . "\n", FILE_APPEND);
 
-// 1. Очищаем от всех нецифровых символов (удаляем +, (), -, spaces и _)
+// 1. Полная очистка: убираем подчеркивания и всё, кроме цифр
 $cleanPhone = str_replace('_', '', $rawPhone);
 $digits = preg_replace('/[^0-9]/', '', $cleanPhone);
 
-// 2. Приводим строго к 10 цифрам (формат 0XXXXXXXXX для API Drop1)
-if (strlen($digits) === 12 && substr($digits, 0, 2) === '38') {
-    // 380963254392 -> 0963254392
-    $digits = substr($digits, 2);
+// 2. Приводим строго к 12 цифрам (380XXXXXXXXX)
+if (strlen($digits) === 10 && strpos($digits, '0') === 0) {
+    // 0963254392 -> 380963254392
+    $digits = '38' . $digits;
 } elseif (strlen($digits) === 9) {
-    // 963254392 -> 0963254392
-    $digits = '0' . $digits;
+    // 963254392 -> 380963254392
+    $digits = '380' . $digits;
 }
 
-// Защита: если номер не содержит 10 цифр после очистки
-if (strlen($digits) !== 10) {
-    file_put_contents('log.txt', date('Y-m-d H:i:s') . " - ERROR: Invalid phone length (" . $digits . ")\n", FILE_APPEND);
+// Защита: номер должен содержать ровно 12 цифр
+if (strlen($digits) !== 12) {
+    file_put_contents('log.txt', date('Y-m-d H:i:s') . " - ERROR: Invalid phone (" . $digits . ")\n", FILE_APPEND);
     header("Location: /?error=invalid_phone");
     exit();
 }
 
-// Логируем очищенный 10-значный номер
-file_put_contents('log.txt', date('Y-m-d H:i:s') . " - CLEAN DIGITS (10): " . $digits . "\n", FILE_APPEND);
+// Логируем подготовленный номер
+file_put_contents('log.txt', date('Y-m-d H:i:s') . " - SENDING DIGITS (12): " . $digits . "\n", FILE_APPEND);
 
-// 3. Формирование и отправка запроса к Drop1
+// 3. Формирование запроса к API Drop1
 $headers = [
     "Authorization: Bearer $tokenauthority",
     'Accept: application/json',
@@ -44,9 +44,11 @@ $headers = [
 ];
 
 $postfields = [
-    'name'  => $name,
-    'phone' => $digits, // Передаем ровно 10 цифр (например, 0963254392)
-    'uid'   => trim($drop1_uid)
+    'name'            => $name,
+    'phone'           => $digits, // Формат 380963254392
+    'uid'             => trim($drop1_uid),
+    'trade_type'      => 'cpa',   // Явно указываем обработку колл-центром
+    'processing_type' => 'cpa'
 ];
 
 $curl = curl_init('https://drop1.top/api/orders');
