@@ -9,17 +9,20 @@ if (!isset($_POST['name']) || !isset($_POST['phone'])) {
 $name = trim($_POST['name']);
 $rawPhone = trim($_POST['phone']);
 
-// Форматування телефону під вимоги Drop1
+// 1. Очищаємо від усіх символів, крім цифр
 $cleanPhone = preg_replace('/[^0-9]/', '', $rawPhone);
-if (strlen($cleanPhone) === 10) {
-    $cleanPhone = '+38' . $cleanPhone;
+
+// 2. Приводим до формату 380XXXXXXXXX
+if (strlen($cleanPhone) === 10 && strpos($cleanPhone, '0') === 0) {
+    // Якщо ввели 0971234567 -> робимо 380971234567
+    $cleanPhone = '38' . $cleanPhone;
+} elseif (strlen($cleanPhone) === 9) {
+    // Якщо ввели 971234567 -> робимо 380971234567
+    $cleanPhone = '380' . $cleanPhone;
 }
 
-if (strlen($cleanPhone) === 12) {
-    $phone = substr($cleanPhone, 0, 2) . '(' . substr($cleanPhone, 2, 3) . ')' . substr($cleanPhone, 5, 3) . '-' . substr($cleanPhone, 8, 2) . '-' . substr($cleanPhone, 10, 2);
-} else {
-    $phone = $rawPhone;
-}
+// 3. Формуємо номер для Drop1 (+380XXXXXXXXX)
+$phone = '+' . $cleanPhone;
 
 $headers = array(
     "Authorization: Bearer $tokenauthority",
@@ -27,7 +30,6 @@ $headers = array(
     'Content-Type: application/x-www-form-urlencoded'
 );
 
-// Передаємо UID у чистому вигляді (з усіма буквами!)
 $postfields = array(
     'name'  => $name,
     'phone' => $phone,
@@ -47,6 +49,6 @@ curl_close($curl);
 
 // Перенаправлення на сторінку дякуємо
 $fbpxidParam = isset($fbpxid) ? $fbpxid : '';
-header('Location: /success.php?phone=' . urlencode($cleanPhone) . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
+header('Location: /success.php?phone=' . urlencode($phone) . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
 exit();
 ?>
