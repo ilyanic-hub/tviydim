@@ -1,7 +1,8 @@
 <?php
 include_once './my_conf.php';
 
-if (!isset($_POST['name']) || !isset($_POST['phone'])) {
+// Проверяем наличие данных
+if (empty($_POST['name']) || empty($_POST['phone'])) {
     header("Location: /");
     exit();
 }
@@ -9,46 +10,56 @@ if (!isset($_POST['name']) || !isset($_POST['phone'])) {
 $name = trim($_POST['name']);
 $rawPhone = trim($_POST['phone']);
 
-// 1. Залишаємо ТІЛЬКИ цифри (видаляємо +, пробіли, дужки)
-$digits = preg_replace('/[^0-9]/', '', $rawPhone);
+// 1. Полная очистка: убираем подчеркивания и всё, что не является цифрой
+$cleanPhone = str_replace('_', '', $rawPhone);
+$digits = preg_replace('/[^0-9]/', '', $cleanPhone);
 
-// 2. Приводимо до формату 12 цифр (380XXXXXXXXX)
+// 2. Нормализация номера под украинский формат (380XXXXXXXXX - 12 цифр)
 if (strlen($digits) === 10 && strpos($digits, '0') === 0) {
-    // Якщо 096325... -> 38096325...
+    // 0963254392 -> 380963254392
     $digits = '38' . $digits;
 } elseif (strlen($digits) === 9) {
-    // Якщо 96325... -> 38096325...
+    // 963254392 -> 380963254392
     $digits = '380' . $digits;
 }
 
-// 3. Для Drop1 передаємо чистий 12-значний номер без плюса (380XXXXXXXXX)
-$phoneForDrop1 = $digits; 
+// 3. Защита от отправки битого номера
+// Если после очистки получилось меньше 12 цифр — возвращаем на главную
+if (strlen($digits) !== 12) {
+    header("Location: /?error=invalid_phone");
+    exit();
+}
 
-$headers = array(
+// 4. Формирование запроса к Drop1
+$headers = [
     "Authorization: Bearer $tokenauthority",
     'Accept: application/json',
     'Content-Type: application/x-www-form-urlencoded'
-);
+];
 
-$postfields = array(
+$postfields = [
     'name'  => $name,
-    'phone' => $phoneForDrop1,
-    'uid'   => trim($drop1_uid)
-);
+    'phone' => $digits,
+    'uid'   => trim($drop1_uid),
+    // Автоматическая передача заказа в колл-центр Drop1 (CPA / Аутсорсинг)
+    'processing_type' => 'cpa' 
+];
 
 $curl = curl_init('https://drop1.top/api/orders');
-curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-curl_setopt($curl, CURLOPT_HEADER, false);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_POST, true);
-curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($postfields));
+curl_setopt_array($curl, [
+    CURLOPT_HTTPHEADER     => $headers,
+    CURLOPT_HEADER         => false,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST           => true,
+    CURLOPT_POSTFIELDS     => http_build_query($postfields),
+    CURLOPT_TIMEOUT        => 10
+]);
 
 $result = curl_exec($curl);
 $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 curl_close($curl);
 
-// 4. Передаємо на success.php ТІЛЬКИ цифри (без плюса у посиланні)
-$fbpxidParam = isset($fbpxid) ? $fbpxid : '';
+// 5. Перенаправление на страницу благодарности
+$fbpxidParam = $fbpxid ?? '';
 header('Location: /success.php?phone=' . $digits . '&uid=' . urlencode($drop1_uid) . '&fbpxid=' . urlencode($fbpxidParam));
 exit();
-?>
