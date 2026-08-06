@@ -62,8 +62,19 @@ require_once 'my_conf.php';
 		ttq.load('D9OIDHJC77U97D5Q804G');
 		ttq.page();
 
-		// Отправляем CompletePayment, совпадающее с событием «Оформление заказа» в Ads Manager
+		// 1. Событие Оформление заказа (CompletePayment)
 		ttq.track('CompletePayment', {
+			content_id: 'krislo_01',
+			content_type: 'product',
+			content_name: 'Надувне крісло з пуфиком',
+			value: 1249,
+			currency: 'UAH'
+		});
+
+		// 2. Событие Размещение заказа (PlaceAnOrder)
+		ttq.track('PlaceAnOrder', {
+			content_id: 'krislo_01',
+			content_type: 'product',
 			content_name: 'Надувне крісло з пуфиком',
 			value: 1249,
 			currency: 'UAH'
